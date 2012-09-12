@@ -1,0 +1,278 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Minecraft Stronghold Location Calculator</title>
+<style type="text/css">
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+html, body {
+	background-color: #1485CC;
+	font-size: 16px;
+}
+
+#wrap {
+	margin: 15px auto;
+	width: 600px;
+	background-color: #EEE;	
+	border: 5px solid #0971B2;
+	color: #0971B2;
+}
+
+#header_container {
+	text-align:center;
+	padding: 15px;
+}
+#header_container h1 {
+	color: #06517F;
+	font-size: 1.3em;
+}
+
+#box_container {
+	text-align: center;
+}
+#box_container .box {
+	line-height: 1.5em;
+	float: left;
+	border: dotted #58BFFE 3px;
+	border-right: none;
+	width: 148px;
+	padding: 10px 0px;
+}
+#box_container .box:first-child {
+	border-left: none;
+	width: 147px;
+}
+#box_container .box input {
+	width: 100px;
+	color: #0CA2FE;
+}
+
+#go_container {
+	text-align: center;
+	padding: 20px;
+}
+#go_container input {
+	font-size: .9em;
+	color: white;
+	border: 3px solid #06517F;
+	background-color: #0872B2;
+	cursor: pointer;
+}
+
+#result_container {
+	text-align: center;
+	color: #054A72;
+	height: 20px;
+}
+#result_container #bad, #result_container #good, #result_container #help, #result_container #fail {
+	display: none;
+}
+#result_container #help, #result_container #fail {
+	color: red;
+}
+#result_container #none {
+	display: block;
+}
+
+#instruction_container {
+	padding: 15px;
+	color: #4290BF;
+}
+#instruction_container ol {
+	list-style-type: decimal;
+	padding-left: 25px;
+}
+#instruction_container ol li {
+	padding-left: 3px;
+	margin-top: 5px;
+}
+#license_container {
+	text-align: center;
+}
+
+</style>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script type="text/javascript">
+function rayIntersection(p1x, p1y, d1x, d1y, p2x, p2y, d2x, d2y){
+	//get vector pieces
+	var v1x = d1x - p1x, v1y = d1y - p1y;
+	var v2x = d2x - p2x, v2y = d2y - p2y;
+	//calculate t values for rays that intersect
+	var t1 = (v2x*(p1y - p2y) - v2y*(p1x - p2x))/(v1x*v2y - v1y*v2x);
+	var t2 = (v1y*(p2x - p1x) - v1x*(p2y - p1y))/(v1x*v2y - v1y*v2x);
+	//if either t value is negative, they only meet as lines
+	if (t1 < 0 || t2 < 0)
+		return false;
+	//otherwise return the x and y coordinates of the point the rays meet
+	return { 
+		x: p1x + t1 * v1x,
+		y: p1y + t1 * v1y
+	}
+}
+function show(which){
+	if (which != 'good' || which != 'bad' || which != 'help' || which != 'fail')
+		$('#none').show();
+	else
+		$('#none').hide();
+	if (which == 'help')
+		$('#help').show();
+	else
+		$('#help').hide();
+	if (which == 'good')
+		$('#good').show();
+	else
+		$('#good').hide();
+	if (which == 'bad')
+		$('#bad').show();
+	else
+		$('#bad').hide();
+	if (which == 'fail')
+		$('#fail').show();
+	else
+		$('#fail').hide();
+}
+var v = {};
+var things = ['p1x', 'p1y', 'd1x', 'd1y', 'p2x', 'p2y', 'd2x', 'd2y'];
+$(document).ready(function(){
+	show('none');
+	for (t in things) {
+		$('input#' + things[t]).val('')
+	}
+	$('#button').click(function(){
+		for (t in things) {
+			var value = $('#' + things[t]).val();
+			if (value === 0 || !value) {
+				show('help');
+				return;
+			}
+			v[things[t]] = parseFloat(value) || 0;
+			$('#' + things[t]).val(v[things[t]]);
+		}
+		var result = rayIntersection(v.p1x, v.p1y, v.d1x, v.d1y, v.p2x, v.p2y, v.d2x, v.d2y);
+		if (!result)
+			show('bad');
+		else if ((!result.x && result.x != 0) || (!result.y && result.y != 0)) {
+			show('fail');
+		}
+		else {
+			$('#xval').text(Math.round(result.x));
+			$('#zval').text(Math.round(result.y));
+			show('good');
+		}
+	});
+});
+</script>
+</head>
+
+<body>
+<div id="wrap">
+	<div id="header_container">
+		<hgroup>
+			<h1>Minecraft Stronghold Location Calculator</h1>
+			<h3>by Josh "geoffreak" D.</h3>
+		</hgroup>
+	</div>
+	<div id="box_container">
+		<fieldset>
+			<div class="box">
+				<h3>Start Point 1</h3>
+				<label for="p1x">X:</label>
+				<input type="text" id="p1x" /><br />
+				<label for="p1y">Z:</label>
+				<input type="text" id="p1y" />
+			</div>
+			<div class="box">
+				<h3>End Point 1</h3>
+				<label for="d1x">X:</label>
+				<input type="text" id="d1x" /><br />
+				<label for="d1y">Z:</label>
+				<input type="text" id="d1y" />
+			</div>
+			<div class="box">
+				<h3>Start Point 2</h3>
+				<label for="p2x">X:</label>
+				<input type="text" id="p2x" /><br />
+				<label for="p2y">Z:</label>
+				<input type="text" id="p2y" />
+			</div>
+			<div class="box">
+				<h3>End Point 2</h3>
+				<label for="d2x">X:</label>
+				<input type="text" id="d2x" /><br />
+				<label for="d2y">Z:</label>
+				<input type="text" id="d2y" />
+			</div>
+		</fieldset>
+	</div>
+	<div id="go_container">
+		<input type="button" value="Determine Location" id="button" />
+	</div>
+	<div id="result_container">
+		<div id="good">You should expect to find a stronghold right around X = <span id="xval"></span>, Z = <span id="zval"></span></div>
+		<div id="bad">Sorry to waste your Eye of Enders, but you have actually found two different strongholds.</div>
+		<div id="help">Please fill all the fields above with valid numbers before trying to determine location.</div>
+		<div id="fail">Are you sure you followed the instructions below? These inputs can't be right.</div>
+		<div id="none">&nbsp;</div>
+	</div>
+	<div id="instruction_container">
+		<h3>How to use this calculator to find strongholds in Minecraft</h3>
+		<ol type="1">
+			<li>Gather at least 2 Eye of Ender.</li>
+			<li>Stand in a large open area above ground. Press F3 and record your X and Z coordinates in the fields under "Start Point 1".</li>
+			<li>Throw an Eye of Ender from this location and quickly run underneath the point where it remains hovering for a second (Not the point where it falls!). Record your X and Z coordinates in the fields under "End Point 1".</li>
+			<li>From the point you recorded the "End Point 1" coordinates, look back at the point where you recorded the "Start Point 1" coordinates. Now look either extactly left or right (90 degrees) from this angle and walk at least 50-100 blocks to another large open area above ground. It doesn't matter if you choose left or right, but don't walk too far as the odds that you'll find two different strongholds increases with distance.</li>
+			<li>Record the X and Z coordinates of this location and record them in the fields under "Start Point 2".</li>
+			<li>Throw an Eye of Ender from this location and quickly run underneath the point where it remains hovering for a second (Not the point where it falls!). Record your X and Z coordinates in the fields under "End Point 2".</li>
+			<li>Press "Determine Location" to see the X and Z coordinates of where the stronghold is. If you got unlucky and came across two strongholds, go back to step 4 and choose the opposite direction of which you chose before.</li>
+			<li>Go to the X and Z coordinates of the stronghold and dig down to your stronghold! You might want to verify the location with an Eye of Ender before you start digging. You should see the Eye dive into the ground if the location has a stronghold below.</li>
+		</ol>
+	</div>
+	<div id="license_container">
+		<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/"><img alt="Creative Commons License" style="border-width:0" src="http://i.creativecommons.org/l/by-nc-sa/3.0/88x31.png" /></a>
+	</div>
+</div>
+
+</body>
+</html>
